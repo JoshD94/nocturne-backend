@@ -12,14 +12,6 @@ association_table2 = db.Table(
     db.Column("genre_id", db.Integer, db.ForeignKey("genres.id"))
 )
 
-# Many to many relationship association table between User and Instrument
-association_table3 = db.Table(
-    "user_instrument_association",
-    db.Model.metadata,
-    db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
-    db.Column("instrument_id", db.Integer, db.ForeignKey("instruments.id"))
-)
-
 # Many to many relationship association table between Query and Mood
 association_table4 = db.Table(
     "query_mood_association",
@@ -34,14 +26,6 @@ association_table5 = db.Table(
     db.Model.metadata,
     db.Column("query_id", db.Integer, db.ForeignKey("queries.id")),
     db.Column("genre_id", db.Integer, db.ForeignKey("genres.id"))
-)
-
-# Many to many relationship association table between Query and Instrument
-association_table6 = db.Table(
-    "query_instrument_association",
-    db.Model.metadata,
-    db.Column("query_id", db.Integer, db.ForeignKey("queries.id")),
-    db.Column("instrument_id", db.Integer, db.ForeignKey("instruments.id"))
 )
 
 # Many to many relationship association table between Song and Mood
@@ -60,14 +44,6 @@ association_table8 = db.Table(
     db.Column("genre_id", db.Integer, db.ForeignKey("genres.id"))
 )
 
-# Many to many relationship association table between Song and Instrument
-association_table9 = db.Table(
-    "song_instrument_association",
-    db.Model.metadata,
-    db.Column("song_id", db.Integer, db.ForeignKey("songs.id")),
-    db.Column("instrument_id", db.Integer, db.ForeignKey("instruments.id"))
-)
-
 ########## Models ##########
 
 
@@ -84,8 +60,6 @@ class User(db.Model):
     queries = db.relationship("Query", backref="user")
     genres = db.relationship(
         "Genre", secondary=association_table2, back_populates="users")
-    instruments = db.relationship(
-        "Instrument", secondary=association_table3, back_populates="users")
 
     def __init__(self, **kwargs):
         '''
@@ -105,12 +79,11 @@ class User(db.Model):
             'email': self.email,
             'songs': [song.serialize() for song in self.songs],
             'genres': [genre.serialize() for genre in self.genres],
-            'instruments': [instrument.serialize() for instrument in self.instruments],
         }
 
     def simple_serialize(self):
         '''
-        Serialize the User object without songs, genres, and instruments
+        Serialize the User object without songs, and genres
         '''
         return {
             'id': self.id,
@@ -132,8 +105,6 @@ class Song(db.Model):
         "Mood", secondary=association_table7, back_populates="songs")
     genres = db.relationship(
         "Genre", secondary=association_table8, back_populates="songs")
-    instruments = db.relationship(
-        "Instrument", secondary=association_table9, back_populates="songs")
 
     def __init__(self, **kwargs):
         '''
@@ -154,12 +125,11 @@ class Song(db.Model):
             'user_id': self.user_id,
             'moods': [mood.serialize() for mood in self.moods],
             'genres': [genre.serialize() for genre in self.genres],
-            'instruments': [instrument.serialize() for instrument in self.instruments],
         }
 
     def simple_serialize(self):
         '''
-        Serialize the Song object without moods, genres, and instruments
+        Serialize the Song object without moods, and genres
         '''
         return {
             'id': self.id,
@@ -181,8 +151,6 @@ class Query(db.Model):
         "Mood", secondary=association_table4, back_populates="queries")
     genres = db.relationship(
         "Genre", secondary=association_table5, back_populates="queries")
-    instruments = db.relationship(
-        "Instrument", secondary=association_table6, back_populates="queries")
 
     def __init__(self, **kwargs):
         '''
@@ -201,7 +169,6 @@ class Query(db.Model):
             'user_id': self.user_id,
             'moods': [mood.serialize() for mood in self.moods],
             'genres': [genre.serialize() for genre in self.genres],
-            'instruments': [instrument.serialize() for instrument in self.instruments],
         }
 
 ########## Feature models ##########
@@ -262,34 +229,4 @@ class Genre(db.Model):
         return {
             'id': self.id,
             'genre': self.genre,
-        }
-
-
-class Instrument(db.Model):
-    '''
-    Instrument model
-    '''
-    __tablename__ = 'instruments'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    instrument = db.Column(db.String(80), default='')
-    users = db.relationship(
-        "User", secondary=association_table3, back_populates="instruments")
-    songs = db.relationship(
-        "Song", secondary=association_table9, back_populates="instruments")
-    queries = db.relationship(
-        "Query", secondary=association_table6, back_populates="instruments")
-
-    def __init__(self, **kwargs):
-        '''
-        Initialize a Instrument object
-        '''
-        self.instrument = kwargs.get('instrument')
-
-    def serialize(self):
-        '''
-        Serialize the Instrument object
-        '''
-        return {
-            'id': self.id,
-            'instrument': self.instrument,
         }

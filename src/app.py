@@ -1,7 +1,7 @@
 import json
 from db import db
 from flask import Flask, request
-from db import User, Genre, Instrument, Mood, Query, Song
+from db import User, Genre, Mood, Query, Song
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -102,8 +102,6 @@ def create_song():
                for mood_id in body.get('mood_ids', [])],
         genres=[Genre.query.get(genre_id)
                 for genre_id in body.get('genre_ids', [])],
-        instruments=[Instrument.query.get(
-            instrument_id) for instrument_id in body.get('instrument_ids', [])]
     )
     db.session.add(new_song)
     db.session.commit()
@@ -182,56 +180,6 @@ def delete_genre(genre_id):
     db.session.commit()
     return success_response(genre.serialize())
 
-# ---------- Instrument Routes ---------- #
-
-
-@app.route('/api/instruments/', methods=['GET'])
-def get_instruments():
-    """
-    Endpoint for getting all instruments
-    """
-    instruments = [instrument.serialize()
-                   for instrument in Instrument.query.all()]
-    return success_response({"instruments": instruments})
-
-
-@app.route('/api/instruments/', methods=['POST'])
-def create_instrument():
-    """
-    Endpoint for creating an instrument
-    """
-    body = json.loads(request.data)
-    new_instrument = Instrument(
-        name=body.get('name')
-    )
-    db.session.add(new_instrument)
-    db.session.commit()
-    return success_response(new_instrument.serialize(), 201)
-
-
-@app.route('/api/instruments/<int:instrument_id>/', methods=['GET'])
-def get_instrument(instrument_id):
-    """
-    Endpoint for getting an instrument
-    """
-    instrument = Instrument.query.filter_by(id=instrument_id).first()
-    if instrument is None:
-        return failure_response("Instrument not found")
-    return success_response(instrument.serialize())
-
-
-@app.route('/api/instruments/<int:instrument_id>/', methods=['DELETE'])
-def delete_instrument(instrument_id):
-    """
-    Endpoint for deleting an instrument
-    """
-    instrument = Instrument.query.filter_by(id=instrument_id).first()
-    if instrument is None:
-        return failure_response("Instrument not found")
-    db.session.delete(instrument)
-    db.session.commit()
-    return success_response(instrument.serialize())
-
 # ---------- Mood Routes ---------- #
 
 
@@ -306,8 +254,6 @@ def create_query():
                for mood_id in body.get('mood_ids', [])],
         genres=[Genre.query.get(genre_id)
                 for genre_id in body.get('genre_ids', [])],
-        instruments=[Instrument.query.get(
-            instrument_id) for instrument_id in body.get('instrument_ids', [])]
     )
     db.session.add(new_query)
     db.session.commit()
