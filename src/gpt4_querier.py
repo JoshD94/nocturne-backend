@@ -87,7 +87,7 @@ def create_midi(midi_format, file_name):
     midi_file = file_name + '.mid'
     wav_file = file_name + '.wav'
     fs.midi_to_audio(midi_file, wav_file)  
-    return wav_file
+    return file_name + '.wav'
 
     
 
