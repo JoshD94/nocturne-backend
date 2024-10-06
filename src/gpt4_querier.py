@@ -33,30 +33,29 @@ def generate_midi(mood, genre, duration):
             one word.'
 
     completion = client.chat.completions.create(
-    # gpt-4o-mini or gpt-4o
-    model="gpt-4o",
-    messages=[
-        {"role": "system", "content": system_prompt},
-        {
-            "role": "user",
-            "content": user_prompt
-        }
-            ]
-        )
-    
+        # gpt-4o-mini or gpt-4o
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
+    )
+
     name = client.chat.completions.create(model="gpt-4o", messages=[
         {"role": "system", "content": "Only output one word based on the user's input"},
         {
             "role": "user",
             "content": name_prompt
         }
-            ]
-        )
-    
-    print((completion.choices[0].message.content, name.choices[0].message.content))
+    ]
+    )
+
+    print((completion.choices[0].message.content,
+          name.choices[0].message.content))
     return (completion.choices[0].message.content, name.choices[0].message.content)
-
-
 
 
 def create_midi(midi_format, file_name):
@@ -67,15 +66,17 @@ def create_midi(midi_format, file_name):
     track = 0  # Track number
     channel = 0  # MIDI channel (0-15, where 0 is usually the default)
     tempo = 120  # Tempo in BPM (beats per minute)
-    MyMIDI.addTempo(track, 0, tempo)  # Add tempo to the track starting at time 0
-    
+    # Add tempo to the track starting at time 0
+    MyMIDI.addTempo(track, 0, tempo)
+
     midi_format = eval(midi_format.strip())
 
     for note_info in midi_format:
         note = note_info["note"]  # MIDI note number (e.g., 60 for C4)
         start_time = note_info["start_time"]  # Start time in beats
         duration = note_info["duration"]  # Duration in beats
-        velocity = note_info["velocity"]  # Velocity (volume/intensity) of the note
+        # Velocity (volume/intensity) of the note
+        velocity = note_info["velocity"]
 
         # Add the note to the MIDI file
         MyMIDI.addNote(track, channel, note, start_time, duration, velocity)
@@ -89,9 +90,8 @@ def create_midi(midi_format, file_name):
     fs.midi_to_audio(midi_file, wav_file)  
     return file_name + '.wav'
 
-    
 
-# generated_midi = generate_midi('sad',['classical'], 10)
+# generated_midi = generate_midi('sad','classical', 10)
 # midi_file = create_midi(generated_midi[0], generated_midi[1])
 
 # TODO: make code blocks different
