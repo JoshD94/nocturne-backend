@@ -17,8 +17,7 @@ def upload_pinata(filepath):
 
     with open(filepath, 'rb') as file:
         response = requests.post(url, files={'file': file}, headers=headers)
-        return response["IpfsHash"]
-
+        return response.json()['IpfsHash']
 
 # print(upload_pinata("Bounce.mid"))
 
