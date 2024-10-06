@@ -1,0 +1,26 @@
+# API key
+# 962fa8b11eaf3c7494cb
+
+# API secret
+# 5ef5a385c5945dfe8dca29087df17ccb7527e9e64350e8da72f7b04226fbea2a
+
+# JWT
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZGFiYzcxMi1iYTliLTQxN2QtYWY3ZC01MDU3YzcwYTI1ODkiLCJlbWFpbCI6Impvc2hkaXJnYUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOTYyZmE4YjExZWFmM2M3NDk0Y2IiLCJzY29wZWRLZXlTZWNyZXQiOiI1ZWY1YTM4NWM1OTQ1ZGZlOGRjYTI5MDg3ZGYxN2NjYjc1MjdlOWU2NDM1MGU4ZGE3MmY3YjA0MjI2ZmJlYTJhIiwiZXhwIjoxNzU5NzE2Njc2fQ.4F0ZHtVBNCLr7vN83YURKlHd-sNmX1_b9ce0ieLmrxc
+
+import requests
+
+
+def upload_pinata(filepath):
+    url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
+    jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZGFiYzcxMi1iYTliLTQxN2QtYWY3ZC01MDU3YzcwYTI1ODkiLCJlbWFpbCI6Impvc2hkaXJnYUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOTYyZmE4YjExZWFmM2M3NDk0Y2IiLCJzY29wZWRLZXlTZWNyZXQiOiI1ZWY1YTM4NWM1OTQ1ZGZlOGRjYTI5MDg3ZGYxN2NjYjc1MjdlOWU2NDM1MGU4ZGE3MmY3YjA0MjI2ZmJlYTJhIiwiZXhwIjoxNzU5NzE2Njc2fQ.4F0ZHtVBNCLr7vN83YURKlHd-sNmX1_b9ce0ieLmrxc"
+    headers = {'Authorization': f'Bearer {jwt}'}
+
+    with open(filepath, 'rb') as file:
+        response = requests.post(url, files={'file': file}, headers=headers)
+        return response["IpfsHash"]
+
+
+# print(upload_pinata("Bounce.mid"))
+
+# To get link to file
+# ipfs.io/ipfs/RESULTINGHASH

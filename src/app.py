@@ -4,6 +4,7 @@ from flask import Flask, request
 from db import User, Genre, Query, Song
 from openai import OpenAI
 import gpt4_querier
+import pinata_integration
 
 app = Flask(__name__)
 db_filename = "nocturne.db"
@@ -198,16 +199,19 @@ def create_query():
     Endpoint for creating a query
     """
     body = json.loads(request.data)
+    generated_midi = gpt4_querier.generate_midi(body.get(
+        'mood', ''), [genre for genre in body.get('genres', [])], body.get('query'), 10)
+    file_path = gpt4_querier.create_midi(generated_midi[0], generated_midi[1])
+    pinata_path = pinata_integration.upload_pinata(file_path)
     new_query = Query(
         query=body.get('query'),
         user_id=body.get('user_id'),
         mood=body.get('mood', ''),
         genres=[genre for genre in body.get('genres', [])],
+        pinata_url="ipfs.io/ipfs/" + pinata_path
     )
     db.session.add(new_query)
     db.session.commit()
-    generated_midi = gpt4_querier.generate_midi(body.get('mood', ''), [genre for genre in body.get('genres', [])], 10)
-    midi_file = gpt4_querier.create_midi(generated_midi[0], generated_midi[1])
     return success_response(new_query.serialize(), 201)
 
 
@@ -233,8 +237,6 @@ def delete_query(query_id):
     db.session.delete(query)
     db.session.commit()
     return success_response(query.serialize())
-
-
 
 
 # to run flask app #

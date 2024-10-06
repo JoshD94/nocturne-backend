@@ -10,7 +10,7 @@ mood = 'sad'
 genre = 'classical'
 
 
-def generate_midi(mood, genre, duration):
+def generate_midi(mood, genre, text, duration):
     system_prompt = f"Generate a melody in note format \
     that I can convert to a MIDI file. Do not respond with any additional text, \
     only the code. Don't assign the dictionary to a variable, \
@@ -23,9 +23,10 @@ def generate_midi(mood, genre, duration):
     {{'note': 64, 'start_time': 1.0, 'duration': 0.5, 'velocity': 100}}, \
     ] \
     "
-    selected_genre = genre[random.randint(0, len(genre))]
+    selected_genre = genre[random.randint(0, len(genre))] if len(
+        genre) > 1 else "be nothing specific"
     user_prompt = f"Generate me a MIDI song with a mood: {mood}, the \
-    genre should {selected_genre}, and the duration of the song should be {duration}."
+    genre should {selected_genre}, and the duration of the song should be {duration}. I want a song that is {text}. Do not repeat melodies, be creative and make them varied."
 
     name_prompt = f'Generate a one word name for the song, given that \
             the mood is {mood} and the genre are these {selected_genre}. Only output this \
@@ -85,7 +86,7 @@ def create_midi(midi_format, file_name):
         return output_file
 
 
-# generated_midi = generate_midi('sad','classical', 10)
+# generated_midi = generate_midi('sad','classical', "hi", 10)
 # midi_file = create_midi(generated_midi[0], generated_midi[1])
 
 # TODO: make code blocks different

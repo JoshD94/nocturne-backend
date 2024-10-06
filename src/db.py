@@ -170,6 +170,7 @@ class Query(db.Model):
     mood = db.Column(db.String(80), default='')
     genres = db.relationship(
         "Genre", secondary=association_table5, back_populates="queries")
+    pinata_url = db.Column(db.String, default='')
 
     def __init__(self, **kwargs):
         '''
@@ -188,6 +189,7 @@ class Query(db.Model):
             'user_id': self.user_id,
             'mood': self.mood,
             'genres': [genre.serialize() for genre in self.genres],
+            'pinata_url': self.pinata_url,
         }
 
 ########## Feature models ##########
