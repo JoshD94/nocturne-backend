@@ -12,28 +12,12 @@ association_table2 = db.Table(
     db.Column("genre_id", db.Integer, db.ForeignKey("genres.id"))
 )
 
-# Many to many relationship association table between Query and Mood
-association_table4 = db.Table(
-    "query_mood_association",
-    db.Model.metadata,
-    db.Column("query_id", db.Integer, db.ForeignKey("queries.id")),
-    db.Column("mood_id", db.Integer, db.ForeignKey("moods.id"))
-)
-
 # Many to many relationship association table between Query and Genre
 association_table5 = db.Table(
     "query_genre_association",
     db.Model.metadata,
     db.Column("query_id", db.Integer, db.ForeignKey("queries.id")),
     db.Column("genre_id", db.Integer, db.ForeignKey("genres.id"))
-)
-
-# Many to many relationship association table between Song and Mood
-association_table7 = db.Table(
-    "song_mood_association",
-    db.Model.metadata,
-    db.Column("song_id", db.Integer, db.ForeignKey("songs.id")),
-    db.Column("mood_id", db.Integer, db.ForeignKey("moods.id"))
 )
 
 # Many to many relationship association table between Song and Genre
@@ -79,6 +63,7 @@ class User(db.Model):
             'email': self.email,
             'songs': [song.serialize() for song in self.songs],
             'genres': [genre.serialize() for genre in self.genres],
+            'queries': [query.serialize() for query in self.queries],
         }
 
     def simple_serialize(self):
@@ -101,8 +86,7 @@ class Song(db.Model):
     title = db.Column(db.String(80), nullable=False)
     likes = db.Column(db.Integer, nullable=False, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    moods = db.relationship(
-        "Mood", secondary=association_table7, back_populates="songs")
+    mood = db.Column(db.String(80), default='')
     genres = db.relationship(
         "Genre", secondary=association_table8, back_populates="songs")
 
@@ -123,7 +107,7 @@ class Song(db.Model):
             'title': self.title,
             'likes': self.likes,
             'user_id': self.user_id,
-            'moods': [mood.serialize() for mood in self.moods],
+            'mood': self.mood,
             'genres': [genre.serialize() for genre in self.genres],
         }
 
@@ -138,6 +122,42 @@ class Song(db.Model):
             'user_id': self.user_id,
         }
 
+    def get_mood_vector(self):
+        '''
+        Get the mood vector of the song
+        '''
+        if self.mood == '':
+            return None
+        return self.convert_str_vector(self.mood)
+
+    def convert_str_vector(self, str):
+        '''
+        Convert a string to a 2D vector of integers
+        '''
+        red = ["enraged", "terrified", "panicked", "shocked", "impassioned", "hyper", "livid", "irate", "overwhelmed", "stressed", "annoyed", "pressured", "furious", "frightened", "anxious", "apprehensive", "irritated",
+               "restless", "jealous", "scared", "angry", "jittery", "fomo", "confused", "envious", "repulsed", "frustrated", "embarrassed", "concerned", "tense", "contempt", "troubled", "worried", "nervous", "peeved", "uneasy"]
+        blue = ["disgusted", "trapped", "insecure", "disheartened", "down", "bored", "humiliated", "ashamed", "lost", "disappointed", "meh", "tired", "pessimistic", "vulnerable", "disconnected", "forlorn", "sad", "fatigued",
+                "guilty", "numb", "excluded", "spent", "discouraged", "disengaged", "depressed", "hopeless", "alienated", "nostalgic", "lonely", "apathetic", "miserable", "despair", "glum", "burned out", "exhausted", "helpless"]
+        yellow = ["surprised", "awe", "exhilarated", "thrilled", "elated", "ecstatic", "excited", "determined", "successful", "amazed", "inspired", "empowered", "energized", "eager", "enthusiastic", "joyful", "productive",
+                  "proud", "cheerful", "curious", "upbeat", "happy", "motivated", "optimistic", "pleasant", "focused", "alive", "confident", "engaged", "challenged", "pleased", "playful", "delighted", "wishful", "hopeful", "accomplished"]
+        green = ["calm", "at ease", "understood", "respected", "fulfilled", "blissful", "good", "thoughtful", "appreciated", "supported", "loved", "connected", "relaxed", "chill", "compassionate", "included", "valued", "grateful",
+                 "sympathetic", "comfortable", "empathetic", "content", "accepted", "moved", "mellow", "peaceful", "balanced", "safe", "secure", "blessed", "carefree", "tranquil", "thankful", "relieved", "satisfied", "serene"]
+        if str in red:
+            x = -red.index(str) % 6
+            y = 6 - (red.index(str) // 6)
+        elif str in blue:
+            x = -blue.index(str) % 6
+            y = -(6 - (blue.index(str) // 6))
+        elif str in yellow:
+            x = yellow.index(str) % 6
+            y = 6 - (yellow.index(str) // 6)
+        elif str in green:
+            x = green.index(str) % 6
+            y = -(6 - (green.index(str) // 6))
+        else:
+            return None
+        return [x, y]
+
 
 class Query(db.Model):
     '''
@@ -145,10 +165,9 @@ class Query(db.Model):
     '''
     __tablename__ = 'queries'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    query = db.Column(db.String(80), default='')
+    text = db.Column(db.String(80), default='')
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    moods = db.relationship(
-        "Mood", secondary=association_table4, back_populates="queries")
+    mood = db.Column(db.String(80), default='')
     genres = db.relationship(
         "Genre", secondary=association_table5, back_populates="queries")
 
@@ -156,7 +175,7 @@ class Query(db.Model):
         '''
         Initialize a Query object
         '''
-        self.query = kwargs.get('query')
+        self.text = kwargs.get('query')
         self.user_id = kwargs.get('user_id')
 
     def serialize(self):
@@ -165,41 +184,13 @@ class Query(db.Model):
         '''
         return {
             'id': self.id,
-            'query': self.query,
+            'query': self.text,
             'user_id': self.user_id,
-            'moods': [mood.serialize() for mood in self.moods],
+            'mood': self.mood,
             'genres': [genre.serialize() for genre in self.genres],
         }
 
 ########## Feature models ##########
-
-
-class Mood(db.Model):
-    '''
-    Mood model
-    '''
-    __tablename__ = 'moods'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    mood = db.Column(db.String(80), default='')
-    songs = db.relationship(
-        "Song", secondary=association_table7, back_populates="moods")
-    queries = db.relationship(
-        "Query", secondary=association_table4, back_populates="moods")
-
-    def __init__(self, **kwargs):
-        '''
-        Initialize a Mood object
-        '''
-        self.mood = kwargs.get('mood')
-
-    def serialize(self):
-        '''
-        Serialize the Mood object
-        '''
-        return {
-            'id': self.id,
-            'mood': self.mood,
-        }
 
 
 class Genre(db.Model):

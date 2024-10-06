@@ -1,7 +1,7 @@
 import json
 from db import db
 from flask import Flask, request
-from db import User, Genre, Mood, Query, Song
+from db import User, Genre, Query, Song
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -98,8 +98,7 @@ def create_song():
         title=body.get('title'),
         likes=body.get('likes', 0),
         user_id=body.get('user_id'),
-        moods=[Mood.query.get(mood_id)
-               for mood_id in body.get('mood_ids', [])],
+        mood=body.get('mood', ''),
         genres=[Genre.query.get(genre_id)
                 for genre_id in body.get('genre_ids', [])],
     )
@@ -150,7 +149,7 @@ def create_genre():
     """
     body = json.loads(request.data)
     new_genre = Genre(
-        name=body.get('name')
+        genre=body.get('genre')
     )
     db.session.add(new_genre)
     db.session.commit()
@@ -180,55 +179,6 @@ def delete_genre(genre_id):
     db.session.commit()
     return success_response(genre.serialize())
 
-# ---------- Mood Routes ---------- #
-
-
-@app.route('/api/moods/', methods=['GET'])
-def get_moods():
-    """
-    Endpoint for getting all moods
-    """
-    moods = [mood.serialize() for mood in Mood.query.all()]
-    return success_response({"moods": moods})
-
-
-@app.route('/api/moods/', methods=['POST'])
-def create_mood():
-    """
-    Endpoint for creating a mood
-    """
-    body = json.loads(request.data)
-    new_mood = Mood(
-        mood=body.get('mood')
-    )
-    db.session.add(new_mood)
-    db.session.commit()
-    return success_response(new_mood.serialize(), 201)
-
-
-@app.route('/api/moods/<int:mood_id>/', methods=['GET'])
-def get_mood(mood_id):
-    """
-    Endpoint for getting a mood
-    """
-    mood = Mood.query.filter_by(id=mood_id).first()
-    if mood is None:
-        return failure_response("Mood not found")
-    return success_response(mood.serialize())
-
-
-@app.route('/api/moods/<int:mood_id>/', methods=['DELETE'])
-def delete_mood(mood_id):
-    """
-    Endpoint for deleting a mood
-    """
-    mood = Mood.query.filter_by(id=mood_id).first()
-    if mood is None:
-        return failure_response("Mood not found")
-    db.session.delete(mood)
-    db.session.commit()
-    return success_response(mood.serialize())
-
 # ---------- Query Routes ---------- #
 
 
@@ -250,8 +200,7 @@ def create_query():
     new_query = Query(
         query=body.get('query'),
         user_id=body.get('user_id'),
-        moods=[Mood.query.get(mood_id)
-               for mood_id in body.get('mood_ids', [])],
+        mood=body.get('mood', ''),
         genres=[Genre.query.get(genre_id)
                 for genre_id in body.get('genre_ids', [])],
     )
