@@ -1,6 +1,7 @@
 from openai import OpenAI
 from midiutil import MIDIFile
-import random
+from midi2audio import FluidSynth
+
 
 api_key = "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"
 client = OpenAI(api_key=api_key)
@@ -81,7 +82,12 @@ def create_midi(midi_format, file_name):
 
     with open(file_name + '.mid', "wb") as output_file:
         MyMIDI.writeFile(output_file)
-        return output_file
+    
+    fs = FluidSynth()
+    midi_file = file_name + '.mid'
+    wav_file = file_name + '.wav'
+    fs.midi_to_audio(midi_file, wav_file)  
+    return wav_file
 
     
 
